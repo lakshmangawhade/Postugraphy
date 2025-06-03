@@ -33,12 +33,6 @@ ENV/
 
 # Project specific
 .env
-output/
-image/
-*.pdf
-*.docx
-*.json
-*.png
 
 # Logs
 *.log
