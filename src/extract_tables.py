@@ -1,7 +1,6 @@
 import base64
 from pathlib import Path
 from mistralai.client import MistralClient
-from mistralai.models.chat_completion import ChatMessage
 from groq import Groq
 import json
 import os
@@ -54,10 +53,13 @@ def process_image_ocr(image_path: str, mistral_client: MistralClient) -> str:
             
         # Create chat message for OCR
         messages = [
-            ChatMessage(role="user", content=f"Please extract the table from this image: data:image/jpeg;base64,{image_data}")
+            {
+                "role": "user",
+                "content": f"Please extract the table from this image: data:image/jpeg;base64,{image_data}"
+            }
         ]
         
-        # Call the OCR endpoint
+        # Call the chat completion endpoint
         response = mistral_client.chat(
             model="mistral-large-latest",
             messages=messages
