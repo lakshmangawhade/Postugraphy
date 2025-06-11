@@ -3,9 +3,9 @@ import tempfile
 from pathlib import Path
 import logging
 
-from crop_utils import crop_pdf_page, save_cropped_image
-from extract_tables import setup_clients, process_image_ocr, convert_markdown_to_json, save_json
-from doc_utils import create_doc_from_json, save_doc
+from src.crop_utils import crop_pdf_page, save_cropped_image
+from src.extract_tables import setup_clients, process_image_ocr, convert_markdown_to_json, save_json
+from src.doc_utils import create_doc_from_json, save_doc
 
 app = Flask(__name__)
 
@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Base and output directories
-BASE_DIR = Path(__file__).resolve().parent.parent  # Go up one level to main directory
+BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "output"
 IMAGE_DIR = BASE_DIR / "image"
 
@@ -114,6 +114,8 @@ def process_document():
             logger.error("Invalid file type")
             return 'Only PDF files are allowed', 400
 
+        # Get base filename without extension
+        base_filename = Path(file.filename).stem
         logger.info(f"Processing file: {file.filename}")
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
@@ -125,7 +127,7 @@ def process_document():
         logger.info("Step 1: Extracting image from page 5")
         page_number = 5  # 0-based indexing
         crop_rect = (0, 127, 700, 470)
-        image_output_path = IMAGE_DIR / "extracted_image.png"
+        image_output_path = IMAGE_DIR / f"{base_filename}.png"
 
         cropped_image = crop_pdf_page(pdf_path, page_number, crop_rect)
         save_cropped_image(cropped_image, str(image_output_path))
@@ -142,14 +144,14 @@ def process_document():
         json_data = convert_markdown_to_json(markdown_table, groq_client)
         logger.info("JSON conversion completed")
 
-        json_output_path = OUTPUT_DIR / "table_output.json"
+        json_output_path = OUTPUT_DIR / f"{base_filename}.json"
         save_json(json_data, str(json_output_path))
         logger.info(f"JSON saved to {json_output_path}")
 
         # Step 3: Generate Word document
         logger.info("Step 3: Generating Word document")
         doc = create_doc_from_json(json_data)
-        doc_output_path = OUTPUT_DIR / "test_report.docx"
+        doc_output_path = OUTPUT_DIR / f"{base_filename}.docx"
         save_doc(doc, str(doc_output_path))
         logger.info(f"Document saved to {doc_output_path}")
 
@@ -161,7 +163,7 @@ def process_document():
             str(doc_output_path),
             mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             as_attachment=True,
-            download_name='test_report.docx'
+            download_name=f'{base_filename}.docx'
         )
 
     except Exception as e:
@@ -169,4 +171,4 @@ def process_document():
         return str(e), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True) 
+    app.run(host="0.0.0.0", port=5000, debug=True)

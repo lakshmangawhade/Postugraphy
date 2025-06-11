@@ -33,46 +33,74 @@ def create_doc_from_json(json_data: Dict[str, Any]) -> Document:
     font.name = 'Calibri'
     font.size = Pt(11)
 
-    test_keys = json_data.get("Test Type", {}).keys()
+    # Get test keys from Test Type or Test Name
+    test_keys = list(json_data.get("Test Type", {}).keys())
+    if not test_keys:
+        test_keys = list(json_data.get("Test Name", {}).keys())
+    
+    # If still no keys found, return empty document
+    if not test_keys:
+        print("Warning: No test data found in JSON")
+        return doc
 
+    # Process each test
     for test_key in test_keys:
-        test_type = json_data["Test Type"].get(test_key, "Unknown")
-        title = f"{test_key}: Perturbed Stability Eyes Closed ({test_type}):"
+        # Get test name and type
+        test_name = json_data.get("Test Name", {}).get(test_key, test_key)
+        test_type = json_data.get("Test Type", {}).get(test_key, "")
+        
+        # Create title in the format "Test X: Test Name (Test Type)"
+        title = f"{test_key}: {test_name}"
+        if test_type:
+            title += f" ({test_type})"
         doc.add_paragraph(title, style='Heading2')
 
-        # Extract and write values from JSON
-        doc.add_paragraph(f"Stability Score: {json_data.get('Stability Score', {}).get(test_key, 'N/A')}", style='List Bullet')
-        doc.add_paragraph(f"Stability Class: {json_data.get('Stability Class', {}).get(test_key, 'N/A')} → FLAG", style='List Bullet')
-        doc.add_paragraph(f"Predicted Direction of Sway: {json_data.get('Pred. Direction of Sway', {}).get(test_key, 'N/A')}", style='List Bullet')
-        doc.add_paragraph(f"Fatigue Ratio: {json_data.get('Fatigue Ratio', {}).get(test_key, 'N/A')}", style='List Bullet')
-        doc.add_paragraph(f"Adaptation Ratio: {json_data.get('Adaptation Ratio', {}).get(test_key, 'N/A')}", style='List Bullet')
-        doc.add_paragraph(f"Directionality: {json_data.get('Directionality', {}).get(test_key, 'N/A')}", style='List Bullet')
-
-        sway_center = json_data.get("Sway Center", {}).get(test_key, ["N/A", "N/A"])
-        ml_sway = json_data.get("ML Sway: Max & 95% Conf.", {}).get(test_key, ["N/A", "N/A"])
-        ap_sway = json_data.get("AP Sway: Max & 95% Conf.", {}).get(test_key, ["N/A", "N/A"])
-        los = json_data.get("Max Theoretical Sway (LoS)", {}).get(test_key, "N/A")
-
-        doc.add_paragraph(f"Sway Center [Xo, Yo]: [{sway_center[0]}, {sway_center[1]}]", style='List Bullet')
-        doc.add_paragraph(f"ML Sway (Max & 95%): {ml_sway[0]} & {ml_sway[1]}", style='List Bullet')
-        doc.add_paragraph(f"AP Sway (Max & 95%): {ap_sway[0]} & {ap_sway[1]}", style='List Bullet')
-
-        # Optional fields
-        optional_fields = [
-            ("Actual Sway (Max & Ave)", "Actual Sway (Max & Ave)"),
-            ("Sway Velocity (Max & Ave)", "Sway Velocity (Max & Ave)"),
-            ("Sway Acceleration (Max & Ave)", "Sway Acceleration (Max & Ave)"),
+        # Define fields in the exact order required
+        fields = [
+            ("Stability Score", "Stability Score"),
+            ("Stability Class", "Stability Class"),
+            ("Pred. Direction of Sway", "Pred. Direction of Sway"),
+            ("Fatigue Ratio", "Fatigue Ratio"),
+            ("Adaptation Ratio", "Adaptation Ratio"),
+            ("Directionality", "Directionality"),
+            ("Sway Center [Xo, Yo]", "Sway Center [Xo, Yo]"),
+            ("ML Sway (Max & 95%)", "ML Sway: Max & 95% Conf."),
+            ("AP Sway (Max & 95%)", "AP Sway: Max & 95% Conf."),
+            ("Actual Sway (Max & Ave)", "Actual Sway: Max & Ave"),
+            ("Sway Velocity (Max & Ave)", "Sway Velocity: Max & Ave"),
+            ("Sway Acceleration (Max & Ave)", "Sway Acceler.: Max & Ave"),
             ("Sway Path Length", "Sway Path Length"),
             ("Area 95% Conf. Ellipse", "Area 95% Conf. Ellipse"),
-            ("Parameter p", "Parameter p"),
+            ("LoS", "Max Theoretical Sway (LoS)"),
+            ("Parameter p", "Parameter p")
         ]
 
-        for label, key in optional_fields:
-            value = json_data.get(key, {}).get(test_key)
-            if value:
-                doc.add_paragraph(f"{label}: {value}", style='List Bullet')
+        # Add each field in the specified order
+        for display_name, json_key in fields:
+            value = json_data.get(json_key, {}).get(test_key)
+            if value is not None:
+                if isinstance(value, list):
+                    if len(value) == 2:
+                        doc.add_paragraph(f"{display_name}: {value[0]} & {value[1]}", style='List Bullet')
+                    else:
+                        doc.add_paragraph(f"{display_name}: {', '.join(value)}", style='List Bullet')
+                else:
+                    if display_name == "Stability Class":
+                        # Get the stability score for this test
+                        stability_score = json_data.get("Stability Score", {}).get(test_key)
+                        # Only add FLAG if stability score is less than 75
+                        if stability_score is not None:
+                            # Remove '%' symbol and convert to float
+                            score_value = float(str(stability_score).replace('%', ''))
+                            if score_value < 75:
+                                doc.add_paragraph(f"{display_name}: {value} → FLAG", style='List Bullet')
+                            else:
+                                doc.add_paragraph(f"{display_name}: {value}", style='List Bullet')
+                        else:
+                            doc.add_paragraph(f"{display_name}: {value}", style='List Bullet')
+                    else:
+                        doc.add_paragraph(f"{display_name}: {value}", style='List Bullet')
 
-        doc.add_paragraph(f"LoS: {los}", style='List Bullet')
         doc.add_paragraph("")  # Space between tests
 
     return doc
@@ -89,16 +117,22 @@ def save_doc(doc: Document, output_path: str) -> None:
         output_path += ".docx"
     doc.save(output_path)
 
-#if __name__ == "__main__":
-   # input_path = "output/table_output.json"
-    #output_path = "output/test_report.docx"
+if __name__ == "__main__":
+    # Use forward slashes or raw string for Windows paths
+    input_path = "C:/Users/Lakshman/Downloads/AJ19760617_Posturography.T2.json"
+    output_path = "output/AJ19760617_Posturography.T2.docx"
 
-    #if not output_path.lower().endswith(".docx"):
-    #    output_path += ".docx"
+    if not output_path.lower().endswith(".docx"):
+        output_path += ".docx"
 
-    #if os.path.exists(input_path):
-    #    json_data = load_json(input_path)
-    #    doc = create_doc_from_json(json_data)
-    #    save_doc(doc, output_path)
-    #else:
-    #    print("❌ Error: JSON file not found.")
+    if os.path.exists(input_path):
+        try:
+            json_data = load_json(input_path)
+            print(f"Loaded JSON data with keys: {list(json_data.keys())}")
+            doc = create_doc_from_json(json_data)
+            save_doc(doc, output_path)
+            print(f"✅ Document saved successfully to {output_path}")
+        except Exception as e:
+            print(f"❌ Error processing file: {str(e)}")
+    else:
+        print(f"❌ Error: JSON file not found at {input_path}")

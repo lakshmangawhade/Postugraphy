@@ -1,0 +1,159 @@
+{
+  "Test Type": {},
+  "Test Name": {
+    "Test 1": "Normal Stability Eyes Open NSEO",
+    "Test 2": "Normal Stability Eyes Closed NSEC",
+    "Test 3": "Perturbed Stability Eyes Open PSEO",
+    "Test 4": "Perturbed Stability Eyes Closed PSEC"
+  },
+  "Test Date": {
+    "Test 1": "5/15/2025 10:02 AM",
+    "Test 2": "5/15/2025 10:03 AM",
+    "Test 3": "5/15/2025 10:04 AM",
+    "Test 4": "5/15/2025 10:05 AM"
+  },
+  "Test Parameters": {
+    "Test 1": "19.997s @ 64.011 Hz",
+    "Test 2": "19.997s @ 64.011 Hz",
+    "Test 3": "19.997s @ 64.011 Hz",
+    "Test 4": "19.997s @ 64.011 Hz"
+  },
+  "Samples: Total & Valid": {
+    "Test 1": "1280 & 1280",
+    "Test 2": "1280 & 1280",
+    "Test 3": "1280 & 1280",
+    "Test 4": "1280 & 1280"
+  },
+  "Test Status": {
+    "Test 1": "Completed",
+    "Test 2": "Completed",
+    "Test 3": "Completed",
+    "Test 4": "Completed"
+  },
+  "Sway Center [Xo, Yo]": {
+    "Test 1": "[0.0075 m, -0.0184 m]",
+    "Test 2": "[0.0045 m, -0.0407 m]",
+    "Test 3": "[0.0699 m, 0.0508 m]",
+    "Test 4": "[0.0636 m, 0.0489 m]"
+  },
+  "Max Theoretical Sway (LoS)": {
+    "Test 1": "0.2096 m",
+    "Test 2": "0.2096 m",
+    "Test 3": "0.2096 m",
+    "Test 4": "0.2096 m"
+  },
+  "ML Sway: Max & 95% Conf.": {
+    "Test 1": "0.0001 m & 0.0046 m",
+    "Test 2": "0.0035 m & 0.0050 m",
+    "Test 3": "0.0069 m & 0.0163 m",
+    "Test 4": "0.0147 m & 0.0343 m"
+  },
+  "AP Sway: Max & 95% Conf.": {
+    "Test 1": "0.0003 m & 0.0060 m",
+    "Test 2": "0.0006 m & 0.0114 m",
+    "Test 3": "0.0009 m & 0.0131 m",
+    "Test 4": "0.0211 m & 0.0561 m"
+  },
+  "95% Conf. Sway: Max & Min": {
+    "Test 1": "0.0060 m & 0.0046 m",
+    "Test 2": "0.0114 m & 0.0050 m",
+    "Test 3": "0.0175 m & 0.0113 m",
+    "Test 4": "0.0567 m & 0.0333 m"
+  },
+  "Actual Sway: Max & Ave": {
+    "Test 1": "0.0045 m & 0.0017 m",
+    "Test 2": "0.0071 m & 0.0028 m",
+    "Test 3": "0.0136 m & 0.0047 m",
+    "Test 4": "0.0400 m & 0.0152 m"
+  },
+  "Sway Velocity: Max & Ave": {
+    "Test 1": "0.024 m/s & 0.006 m/s",
+    "Test 2": "0.027 m/s & 0.007 m/s",
+    "Test 3": "0.129 m/s & 0.027 m/s",
+    "Test 4": "0.167 m/s & 0.050 m/s"
+  },
+  "Sway Acceler.: Max & Ave": {
+    "Test 1": "0.859 m/s\u00b2 & 0.182 m/s\u00b2",
+    "Test 2": "0.887 m/s\u00b2 & 0.232 m/s\u00b2",
+    "Test 3": "5.217 m/s\u00b2 & 0.958 m/s\u00b2",
+    "Test 4": "3.753 m/s\u00b2 & 1.030 m/s\u00b2"
+  },
+  "Sway Path Length": {
+    "Test 1": "0.1129 m",
+    "Test 2": "0.1387 m",
+    "Test 3": "0.5480 m",
+    "Test 4": "0.9917 m"
+  },
+  "Area 95% Conf. Ellipse": {
+    "Test 1": "0.0000218 m\u00b2",
+    "Test 2": "0.0000446 m\u00b2",
+    "Test 3": "0.0001559 m\u00b2",
+    "Test 4": "0.0014819 m\u00b2"
+  },
+  "Stability Score": {
+    "Test 1": "97.1%",
+    "Test 2": "94.6%",
+    "Test 3": "91.6%",
+    "Test 4": "72.9%"
+  },
+  "Stability Class": {
+    "Test 1": "Healthy Balance",
+    "Test 2": "Healthy Balance",
+    "Test 3": "Healthy Balance",
+    "Test 4": "Mildly Reduced"
+  },
+  "Pred. Direction of Sway": {
+    "Test 1": "-84.3 deg",
+    "Test 2": "89.6 deg",
+    "Test 3": "-29.2 deg",
+    "Test 4": "-79.4 deg"
+  },
+  "Directionality": {
+    "Test 1": "23%",
+    "Test 2": "56%",
+    "Test 3": "36%",
+    "Test 4": "41%"
+  },
+  "Fatigue Ratio": {
+    "Test 1": "0.0%",
+    "Test 2": "0.0%",
+    "Test 3": "0.0%",
+    "Test 4": "9.3%"
+  },
+  "Adaptation Ratio": {
+    "Test 1": "31.3%",
+    "Test 2": "0.5%",
+    "Test 3": "5.6%",
+    "Test 4": "0.0%"
+  },
+  "Parameter p": {
+    "Test 1": "10.9",
+    "Test 2": "14.9",
+    "Test 3": "7.4",
+    "Test 4": "6.7"
+  },
+  "Height": {
+    "Test 1": "1.75 m",
+    "Test 2": "1.75 m",
+    "Test 3": "1.75 m",
+    "Test 4": "1.75 m"
+  },
+  "Weight": {
+    "Test 1": "144 lb 11 oz",
+    "Test 2": "144 lb 8 oz",
+    "Test 3": "126 lb 4 oz",
+    "Test 4": "124 lb 15 oz"
+  },
+  "Body Mass Index": {
+    "Test 1": "21.4",
+    "Test 2": "21.4",
+    "Test 3": "18.7",
+    "Test 4": "18.5"
+  },
+  "Body Mass Index Class": {
+    "Test 1": "Healthy weight",
+    "Test 2": "Healthy weight",
+    "Test 3": "Healthy weight",
+    "Test 4": "Healthy weight"
+  }
+}

@@ -4,7 +4,7 @@ from pathlib import Path
 import logging
 
 from src.crop_utils import crop_pdf_page, save_cropped_image
-from src.extract_tables import setup_clients, process_image_ocr, convert_markdown_to_json, save_json
+from src.extract_tables import setup_clients, process_image_ocr, convert_markdown_to_json_with_multiple_models, save_json
 from src.doc_utils import create_doc_from_json, save_doc
 
 app = Flask(__name__)
@@ -141,7 +141,7 @@ def process_document():
         markdown_table = process_image_ocr(str(image_output_path), mistral_client)
         logger.info("OCR processing completed")
 
-        json_data = convert_markdown_to_json(markdown_table, groq_client)
+        json_data = convert_markdown_to_json_with_multiple_models(markdown_table, groq_client)
         logger.info("JSON conversion completed")
 
         json_output_path = OUTPUT_DIR / f"{base_filename}.json"

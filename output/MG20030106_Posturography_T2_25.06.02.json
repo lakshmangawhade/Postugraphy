@@ -1,0 +1,247 @@
+{
+  "Test Name": {
+    "Test 1 Foam Eyes Closed Rt": "",
+    "Test 2 Foam Eyes Closed Lt": "",
+    "Test 3 Foam Eyes Closed Flx": "",
+    "Test 4 Foam Eyes Closed Ext": ""
+  },
+  "Test Type": {
+    "Test 1": "PSEC",
+    "Test 2": "PSEC",
+    "Test 3": "PSEC",
+    "Test 4": "PSEC"
+  },
+  "Test Date": {
+    "Test 1": "6/2/2025 04:19 PM",
+    "Test 2": "6/2/2025 04:19 PM",
+    "Test 3": "6/2/2025 04:20 PM",
+    "Test 4": "6/2/2025 04:21 PM"
+  },
+  "Test Parameters": {
+    "Test 1": "19.997s @ 64.011 Hz",
+    "Test 2": "19.997s @ 64.011 Hz",
+    "Test 3": "19.997s @ 64.011 Hz",
+    "Test 4": "19.997s @ 64.011 Hz"
+  },
+  "Samples: Total & Valid": {
+    "Test 1": "1280 & 1280",
+    "Test 2": "1280 & 1280",
+    "Test 3": "1280 & 1280",
+    "Test 4": "1280 & 1280"
+  },
+  "Test Status": {
+    "Test 1": "Completed",
+    "Test 2": "Completed",
+    "Test 3": "Completed",
+    "Test 4": "Completed"
+  },
+  "Sway Center [Xo, Yo]": {
+    "Test 1": [
+      "-0.0031 m",
+      "0.0168 m"
+    ],
+    "Test 2": [
+      "0.0044 m",
+      "0.0144 m"
+    ],
+    "Test 3": [
+      "0.0026 m",
+      "0.0162 m"
+    ],
+    "Test 4": [
+      "0.0062 m",
+      "0.0197 m"
+    ]
+  },
+  "Max Theoretical Sway (LoS)": {
+    "Test 1": "0.1976 m",
+    "Test 2": "0.1976 m",
+    "Test 3": "0.1976 m",
+    "Test 4": "0.1976 m"
+  },
+  "ML Sway: Max & 95% Conf.": {
+    "Test 1": [
+      "0.0033 m",
+      "0.0413 m"
+    ],
+    "Test 2": [
+      "0.0061 m",
+      "0.0644 m"
+    ],
+    "Test 3": [
+      "0.0065 m",
+      "0.0367 m"
+    ],
+    "Test 4": [
+      "0.0073 m",
+      "0.0546 m"
+    ]
+  },
+  "AP Sway: Max & 95% Conf.": {
+    "Test 1": [
+      "0.0345 m",
+      "0.0520 m"
+    ],
+    "Test 2": [
+      "0.0307 m",
+      "0.0556 m"
+    ],
+    "Test 3": [
+      "0.0147 m",
+      "0.0511 m"
+    ],
+    "Test 4": [
+      "0.0070 m",
+      "0.0679 m"
+    ]
+  },
+  "95% Conf. Sway: Max & Min": {
+    "Test 1": [
+      "0.0522 m",
+      "0.0410 m"
+    ],
+    "Test 2": [
+      "0.0719 m",
+      "0.0455 m"
+    ],
+    "Test 3": [
+      "0.0542 m",
+      "0.0319 m"
+    ],
+    "Test 4": [
+      "0.0682 m",
+      "0.0542 m"
+    ]
+  },
+  "Actual Sway: Max & Ave": {
+    "Test 1": [
+      "0.0443 m",
+      "0.0143 m"
+    ],
+    "Test 2": [
+      "0.0465 m",
+      "0.0191 m"
+    ],
+    "Test 3": [
+      "0.0424 m",
+      "0.0143 m"
+    ],
+    "Test 4": [
+      "0.0641 m",
+      "0.0190 m"
+    ]
+  },
+  "Sway Velocity: Max & Ave": {
+    "Test 1": [
+      "0.177 m/s",
+      "0.042 m/s"
+    ],
+    "Test 2": [
+      "0.206 m/s",
+      "0.048 m/s"
+    ],
+    "Test 3": [
+      "0.135 m/s",
+      "0.044 m/s"
+    ],
+    "Test 4": [
+      "0.483 m/s",
+      "0.073 m/s"
+    ]
+  },
+  "Sway Acceler.: Max & Ave": {
+    "Test 1": [
+      "3.163 m/s\u00b2",
+      "0.522 m/s\u00b2"
+    ],
+    "Test 2": [
+      "3.252 m/s\u00b2",
+      "0.615 m/s\u00b2"
+    ],
+    "Test 3": [
+      "2.331 m/s\u00b2",
+      "0.561 m/s\u00b2"
+    ],
+    "Test 4": [
+      "9.354 m/s\u00b2",
+      "0.984 m/s\u00b2"
+    ]
+  },
+  "Sway Path Length": {
+    "Test 1": "0.8453 m",
+    "Test 2": "0.9577 m",
+    "Test 3": "0.8729 m",
+    "Test 4": "1.4550 m"
+  },
+  "Area 95% Conf. Ellipse": {
+    "Test 1": "0.0016812 m\u00b2",
+    "Test 2": "0.0025681 m\u00b2",
+    "Test 3": "0.0013575 m\u00b2",
+    "Test 4": "0.0029026 m\u00b2"
+  },
+  "Stability Score": {
+    "Test 1": "73.6%",
+    "Test 2": "63.6%",
+    "Test 4": "65.5%"
+  },
+  "Stability Class": {
+    "Test 1": "Mildly Reduced",
+    "Test 2": "Moderately Reduced",
+    "Test 3": "Mildly Reduced",
+    "Test 4": "Moderately Reduced"
+  },
+  "Pred. Direction of Sway": {
+    "Test 1": "81.3 deg",
+    "Test 2": "-35.1 deg",
+    "Test 3": "65.6 deg",
+    "Test 4": "80.3 deg"
+  },
+  "Directionality": {
+    "1": "22%",
+    "Test 2": "37%",
+    "Test 3": "41%",
+    "Test 4": "21%"
+  },
+  "Fatigue Ratio": {
+    "Test 1": "50.5%",
+    "Test 2": "34.4%",
+    "Test 3": "0.0%",
+    "Test 4": "41.6%"
+  },
+  "Adaptation Ratio": {
+    "Test 1": "0.0%",
+    "Test 2": "0.0%",
+    "Test 3": "10.2%",
+    "Test 4": "0.0%"
+  },
+  "Parameter p": {
+    "Test 1": "4.2",
+    "Test 2": "5.1",
+    "Test 3": "4.2",
+    "Test 4": "3.5"
+  },
+  "Height": {
+    "Test 1": "1.65 m",
+    "Test 2": "1.65 m",
+    "Test 3": "1.65 m",
+    "Test 4": "1.65 m"
+  },
+  "Weight": {
+    "Test 1": "118 lb 4 oz",
+    "Test 2": "118 lb 4 oz",
+    "Test 3": "118 lb 4 oz",
+    "Test 4": "118 lb 5 oz"
+  },
+  "Body Mass Index": {
+    "Test 1": "19.7",
+    "Test 2": "19.7",
+    "Test 3": "19.7",
+    "Test 4": "19.7"
+  },
+  "Body Mass Index Class": {
+    "Test 1": "Normal",
+    "Test 2": "Normal",
+    "Test 3": "Normal",
+    "Test 4": "Normal"
+  }
+}
