@@ -1,6 +1,6 @@
 import base64
 from pathlib import Path
-from mistralai.client import MistralClient
+from mistralai import DocumentURLChunk, ImageURLChunk, Mistral
 from groq import Groq
 import json
 import os
@@ -9,12 +9,12 @@ from typing import Dict, Any
 import re
 
 
-def setup_clients() -> tuple[MistralClient, Groq]:
+def setup_clients() -> tuple[Mistral, Groq]:
     """
     Set up and return Mistral and Groq API clients.
     
     Returns:
-        tuple[MistralClient, Groq]: Tuple containing Mistral and Groq clients
+        tuple[Mistral, Groq]: Tuple containing Mistral and Groq clients
     """
     dotenv.load_dotenv()
     mistral_api_key = os.getenv("MISTRAL_API_KEY")
@@ -23,18 +23,18 @@ def setup_clients() -> tuple[MistralClient, Groq]:
     if not mistral_api_key or not groq_api_key:
         raise ValueError("MISTRAL_API_KEY and GROQ_API_KEY must be set in .env file")
     
-    mistral_client = MistralClient(api_key=mistral_api_key)
+    mistral_client = Mistral(api_key=mistral_api_key)
     groq_client = Groq(api_key=groq_api_key)
     
     return mistral_client, groq_client
 
-def process_image_ocr(image_path: str, mistral_client: MistralClient) -> str:
+def process_image_ocr(image_path: str, mistral_client: Mistral) -> str:
     """
     Process an image using Mistral OCR.
 
     Args:
         image_path (str): Path to the image file
-        mistral_client (MistralClient): Mistral API client
+        mistral_client (Mistral): Mistral API client
 
     Returns:
         str: Markdown table extracted from the image
@@ -48,24 +48,16 @@ def process_image_ocr(image_path: str, mistral_client: MistralClient) -> str:
         raise FileNotFoundError(f"Image file not found: {image_path}")
 
     try:
-        with open(image_path, "rb") as image_file:
-            image_data = base64.b64encode(image_file.read()).decode()
-            
-        # Create chat message for OCR
-        messages = [
-            {
-                "role": "user",
-                "content": f"Please extract the table from this image: data:image/jpeg;base64,{image_data}"
-            }
-        ]
-        
-        # Call the chat completion endpoint
-        response = mistral_client.chat(
-            model="mistral-large-latest",
-            messages=messages
+        encoded = base64.b64encode(image_path.read_bytes()).decode()
+        base64_data_url = f"data:image/jpeg;base64,{encoded}"
+
+        image_response = mistral_client.ocr.process(
+            document=ImageURLChunk(image_url=base64_data_url),
+            model="mistral-ocr-latest"
         )
-        
-        return response.choices[0].message.content
+
+        response_dict = json.loads(image_response.model_dump_json())
+        return response_dict["pages"][0]["markdown"]
     except Exception as e:
         raise ValueError(f"OCR processing failed: {str(e)}")
 
