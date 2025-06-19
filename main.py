@@ -1,7 +1,10 @@
-from flask import Flask, request, send_file, render_template_string
+from flask import Flask, request, send_file, render_template_string, jsonify
 import tempfile
 from pathlib import Path
 import logging
+import boto3
+import os
+import uuid
 
 from src.crop_utils import crop_pdf_page, save_cropped_image
 from src.extract_tables import setup_clients, process_image_ocr, convert_markdown_to_json_with_multiple_models, save_json
@@ -21,6 +24,11 @@ IMAGE_DIR = BASE_DIR / "image"
 # Create necessary directories
 OUTPUT_DIR.mkdir(exist_ok=True)
 IMAGE_DIR.mkdir(exist_ok=True)
+
+s3 = boto3.client('s3',
+                 aws_access_key_id=os.getenv("VITE_AWS_ACCESS_KEY"),
+                 aws_secret_access_key=os.getenv("VITE_AWS_SECRET_KEY"),
+                 region_name=os.getenv("VITE_AWS_REGION"))
 
 # HTML template
 UPLOAD_TEMPLATE = """
@@ -159,16 +167,51 @@ def process_document():
         Path(pdf_path).unlink(missing_ok=True)
         logger.info("Temporary PDF file deleted")
 
-        return send_file(
-            str(doc_output_path),
-            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            as_attachment=True,
-            download_name=f'{base_filename}.docx'
-        )
+        # Step 4: Upload to S3
+        bucket_name = os.getenv("VITE_S3_BUCKET_NAME")
+        if not bucket_name:
+            logger.error("AWS bucket name not configured")
+            return jsonify({
+                'status': 'error',
+                'message': 'AWS configuration missing'
+            }), 500
+            
+        # Generate unique filename with extension
+        file_ext = os.path.splitext(doc_output_path)[1]  # Should be .docx
+        unique_filename = f"{uuid.uuid4()}{file_ext}"
+        file_key = f'processed-documents/{unique_filename}'
+    
+        try:
+            with open(doc_output_path, 'rb') as docx_file:
+                s3.upload_fileobj(
+                docx_file,
+                bucket_name,
+                file_key,
+                ExtraArgs={'ContentType': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
+            )
+            
+            # Generate S3 URL
+            s3_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
+            
+            # Return JSON response with URL
+            return jsonify({
+                'status': 'success',
+                'file_url': s3_url,
+                'filename': unique_filename
+            })
+        except Exception as s3_error:
+            logger.error(f"S3 upload error: {str(s3_error)}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Failed to upload file to S3: {str(s3_error)}'
+            }), 500
 
     except Exception as e:
         logger.error(f"Error during processing: {str(e)}")
-        return str(e), 500
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
