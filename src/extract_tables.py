@@ -7,6 +7,23 @@ import os
 import dotenv
 from typing import Dict, Any
 import re
+import httpx
+
+
+class CustomHTTPClient(httpx.Client):
+    """Custom HTTP client that removes proxies parameter if present."""
+    def __init__(self, *args, **kwargs):
+        # Remove proxies parameter if it exists
+        kwargs.pop('proxies', None)
+        super().__init__(*args, **kwargs)
+
+
+class CustomAsyncHTTPClient(httpx.AsyncClient):
+    """Custom async HTTP client that removes proxies parameter if present."""
+    def __init__(self, *args, **kwargs):
+        # Remove proxies parameter if it exists
+        kwargs.pop('proxies', None)
+        super().__init__(*args, **kwargs)
 
 
 def setup_clients() -> tuple[Mistral, Groq]:
@@ -23,8 +40,22 @@ def setup_clients() -> tuple[Mistral, Groq]:
     if not mistral_api_key or not groq_api_key:
         raise ValueError("MISTRAL_API_KEY and GROQ_API_KEY must be set in .env file")
     
-    mistral_client = Mistral(api_key=mistral_api_key)
-    groq_client = Groq(api_key=groq_api_key)
+    # Create HTTP clients that ignore proxies
+    http_client = CustomHTTPClient()
+    async_http_client = CustomAsyncHTTPClient()
+    
+    # Create clients with custom HTTP clients
+    mistral_client = Mistral(
+        api_key=mistral_api_key, 
+        http_client=http_client,
+        async_http_client=async_http_client
+    )
+    
+    groq_client = Groq(
+        api_key=groq_api_key, 
+        http_client=http_client,
+        async_http_client=async_http_client
+    )
     
     return mistral_client, groq_client
 
