@@ -117,22 +117,22 @@ def save_doc(doc: Document, output_path: str) -> None:
         output_path += ".docx"
     doc.save(output_path)
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
     # Use forward slashes or raw string for Windows paths
-    input_path = "C:/Users/Lakshman/Downloads/AJ19760617_Posturography.T2.json"
-    output_path = "output/AJ19760617_Posturography.T2.docx"
+ #   input_path = "C:/Users/Lakshman/Downloads/AJ19760617_Posturography.T2.json"
+  #  output_path = "output/AJ19760617_Posturography.T2.docx"
 
-    if not output_path.lower().endswith(".docx"):
-        output_path += ".docx"
+   # if not output_path.lower().endswith(".docx"):
+    #    output_path += ".docx"
 
-    if os.path.exists(input_path):
-        try:
-            json_data = load_json(input_path)
-            print(f"Loaded JSON data with keys: {list(json_data.keys())}")
-            doc = create_doc_from_json(json_data)
-            save_doc(doc, output_path)
-            print(f"✅ Document saved successfully to {output_path}")
-        except Exception as e:
-            print(f"❌ Error processing file: {str(e)}")
-    else:
-        print(f"❌ Error: JSON file not found at {input_path}")
+    #if os.path.exists(input_path):
+     #   try:
+      #      json_data = load_json(input_path)
+       #     print(f"Loaded JSON data with keys: {list(json_data.keys())}")
+        #    doc = create_doc_from_json(json_data)
+         #   save_doc(doc, output_path)
+          #  print(f"✅ Document saved successfully to {output_path}")
+       # except Exception as e:
+        #    print(f"❌ Error processing file: {str(e)}")
+   # else:
+    #    print(f"❌ Error: JSON file not found at {input_path}")
