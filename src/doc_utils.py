@@ -116,6 +116,7 @@ def save_doc(doc: Document, output_path: str) -> None:
     if not output_path.lower().endswith(".docx"):
         output_path += ".docx"
     doc.save(output_path)
+   
 
 #if __name__ == "__main__":
     # Use forward slashes or raw string for Windows paths

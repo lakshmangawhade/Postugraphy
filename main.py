@@ -9,6 +9,7 @@ import uuid
 from src.crop_utils import crop_pdf_page, save_cropped_image
 from src.extract_tables import setup_clients, process_image_ocr, convert_markdown_to_json_with_multiple_models, save_json
 from src.doc_utils import create_doc_from_json, save_doc
+from src.uploadToS3 import upload_to_s3
 
 app = Flask(__name__)
 
@@ -156,6 +157,8 @@ def process_document():
         save_json(json_data, str(json_output_path))
         logger.info(f"JSON saved to {json_output_path}")
 
+        # json_s3_url, unique_json_filename = upload_to_s3(str(json_output_path))
+
         # Step 3: Generate Word document
         logger.info("Step 3: Generating Word document")
         doc = create_doc_from_json(json_data)
@@ -165,39 +168,20 @@ def process_document():
 
         # Clean up
         Path(pdf_path).unlink(missing_ok=True)
-        logger.info("Temporary PDF file deleted")
+        Path(image_output_path).unlink(missing_ok=True)
+        Path(json_output_path).unlink(missing_ok=True)
+        logger.info("Temporary files deleted")
 
         # Step 4: Upload to S3
-        bucket_name = os.getenv("VITE_S3_BUCKET_NAME")
-        if not bucket_name:
-            logger.error("AWS bucket name not configured")
-            return jsonify({
-                'status': 'error',
-                'message': 'AWS configuration missing'
-            }), 500
-            
-        # Generate unique filename with extension
-        file_ext = os.path.splitext(doc_output_path)[1]  # Should be .docx
-        unique_filename = f"{uuid.uuid4()}{file_ext}"
-        file_key = f'processed-documents/{unique_filename}'
-    
+        logger.info("Step 4: Uploading document to S3")
         try:
-            with open(doc_output_path, 'rb') as docx_file:
-                s3.upload_fileobj(
-                docx_file,
-                bucket_name,
-                file_key,
-                ExtraArgs={'ContentType': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
-            )
-            
-            # Generate S3 URL
-            s3_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
-            
-            # Return JSON response with URL
+            s3_url, unique_output_filename = upload_to_s3(str(doc_output_path))
             return jsonify({
                 'status': 'success',
                 'file_url': s3_url,
-                'filename': unique_filename
+                'filename': unique_output_filename,
+                # 'json_url': json_s3_url,
+                # 'json_filename': unique_json_filename
             })
         except Exception as s3_error:
             logger.error(f"S3 upload error: {str(s3_error)}")
