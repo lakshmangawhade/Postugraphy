@@ -86,16 +86,9 @@ def create_doc_from_json(json_data: Dict[str, Any]) -> Document:
                         doc.add_paragraph(f"{display_name}: {', '.join(value)}", style='List Bullet')
                 else:
                     if display_name == "Stability Class":
-                        # Get the stability score for this test
-                        stability_score = json_data.get("Stability Score", {}).get(test_key)
-                        # Only add FLAG if stability score is less than 75
-                        if stability_score is not None:
-                            # Remove '%' symbol and convert to float
-                            score_value = float(str(stability_score).replace('%', ''))
-                            if score_value < 75:
-                                doc.add_paragraph(f"{display_name}: {value} → FLAG", style='List Bullet')
-                            else:
-                                doc.add_paragraph(f"{display_name}: {value}", style='List Bullet')
+                        # Flag whenever the stability class text contains the word "Reduced" (case-insensitive)
+                        if isinstance(value, str) and "reduced" in value.lower():
+                            doc.add_paragraph(f"{display_name}: {value} → FLAG", style='List Bullet')
                         else:
                             doc.add_paragraph(f"{display_name}: {value}", style='List Bullet')
                     else:
