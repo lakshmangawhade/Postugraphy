@@ -287,7 +287,11 @@ def convert_markdown_to_json_with_multiple_models(markdown_table: str, groq_clie
             print(f"Error with model {model}: {e}")
             continue
     
-    raise ValueError("All models failed to produce valid JSON")
+    #raise ValueError("All models failed to produce valid JSON")
+    return jsonify({
+            'status': 'error',
+            'message': "This PDF can't be processed."
+        }), 400
 
 
 def save_json(data: Dict[str, Any], output_path: str) -> None:

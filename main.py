@@ -6,6 +6,7 @@ import logging
 import boto3
 import os
 import uuid
+import json
 
 from src.crop_utils import crop_pdf_page, save_cropped_image
 from src.extract_tables import setup_clients, process_image_ocr, convert_markdown_to_json_with_multiple_models, save_json
@@ -167,6 +168,15 @@ def process_document():
         doc_output_path = OUTPUT_DIR / f"{base_filename}.docx"
         save_doc(doc, str(doc_output_path))
         logger.info(f"Document saved to {doc_output_path}")
+        
+        # Check if the document is empty (file size near zero)
+        all_paragraphs = doc.paragraphs
+        if len(all_paragraphs) < 5:  # Checking if doc is too small (likely empty)
+            logger.error("Generated document is empty")
+            return jsonify({
+                'status': 'error',
+                'message': 'Generated document is empty'
+            }), 400
 
         # Clean up
         Path(pdf_path).unlink(missing_ok=True)
