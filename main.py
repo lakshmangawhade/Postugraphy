@@ -110,6 +110,12 @@ def index():
 
 @app.route('/process-document', methods=['POST'])
 def process_document():
+    # Define file paths outside the try block so they're available in all except blocks
+    pdf_path = None
+    image_output_path = None
+    json_output_path = None
+    doc_output_path = None
+    
     try:
         logger.info("Starting document processing...")
         
@@ -172,22 +178,26 @@ def process_document():
         # Check if the document is empty (file size near zero)
         all_paragraphs = doc.paragraphs
         if len(all_paragraphs) < 5:  # Checking if doc is too small (likely empty)
+            # Clean up files before returning error
+            cleanup_files(pdf_path, image_output_path, json_output_path, doc_output_path)
             logger.error("Generated document is empty")
             return jsonify({
                 'status': 'error',
                 'message': 'Generated document is empty'
             }), 400
 
-        # Clean up
-        Path(pdf_path).unlink(missing_ok=True)
-        Path(image_output_path).unlink(missing_ok=True)
-        Path(json_output_path).unlink(missing_ok=True)
+        # Clean up temporary files but keep the doc until after S3 upload
+        cleanup_files(pdf_path, image_output_path, json_output_path)
         logger.info("Temporary files deleted")
 
         # Step 4: Upload to S3
         logger.info("Step 4: Uploading document to S3")
         try:
             s3_url, unique_output_filename = upload_to_s3(str(doc_output_path))
+            
+            # Clean up the doc file after successful upload
+            cleanup_files(doc_output_path=doc_output_path)
+            
             return jsonify({
                 'status': 'success',
                 'file_url': s3_url,
@@ -196,6 +206,8 @@ def process_document():
                 # 'json_filename': unique_json_filename
             })
         except Exception as s3_error:
+            # Clean up the doc file if S3 upload fails
+            #cleanup_files(doc_output_path=doc_output_path)
             logger.error(f"S3 upload error: {str(s3_error)}")
             return jsonify({
                 'status': 'error',
@@ -203,11 +215,28 @@ def process_document():
             }), 500
 
     except Exception as e:
+        # Clean up all files in case of any error
+        cleanup_files(pdf_path, image_output_path, json_output_path, doc_output_path)
         logger.error(f"Error during processing: {str(e)}")
         return jsonify({
             'status': 'error',
             'message': "This PDF can't be processed"
         }), 400
+
+# Helper function to safely delete files
+def cleanup_files(pdf_path=None, image_output_path=None, json_output_path=None, doc_output_path=None):
+    """Safely delete temporary files"""
+    try:
+        if pdf_path:
+            Path(pdf_path).unlink(missing_ok=True)
+        if image_output_path:
+            Path(image_output_path).unlink(missing_ok=True)
+        if json_output_path:
+            Path(json_output_path).unlink(missing_ok=True)
+        if doc_output_path:
+            Path(doc_output_path).unlink(missing_ok=True)
+    except Exception as e:
+        logger.warning(f"Error during file cleanup: {str(e)}")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=os.getenv("PORT"), debug=True)
