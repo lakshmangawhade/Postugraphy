@@ -1,5 +1,6 @@
 from flask import Flask, request, send_file, render_template_string, jsonify
 import tempfile
+from flask_cors import CORS
 from pathlib import Path
 import logging
 import boto3
@@ -12,6 +13,7 @@ from src.doc_utils import create_doc_from_json, save_doc
 from src.uploadToS3 import upload_to_s3
 
 app = Flask(__name__)
+CORS(app, origins="*", send_wildcard=True, supports_credentials=False)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
