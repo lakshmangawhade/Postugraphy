@@ -189,15 +189,15 @@ def process_document():
             logger.error(f"S3 upload error: {str(s3_error)}")
             return jsonify({
                 'status': 'error',
-                'message': f'Failed to upload file to S3: {str(s3_error)}'
+                'message': f'Failed to upload file to S3'
             }), 500
 
     except Exception as e:
         logger.error(f"Error during processing: {str(e)}")
         return jsonify({
             'status': 'error',
-            'message': str(e)
-        }), 500
+            'message': "This PDF can't be processed"
+        }), 400
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=os.getenv("PORT"), debug=True)
