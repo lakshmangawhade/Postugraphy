@@ -7,6 +7,7 @@ import boto3
 import os
 import uuid
 import json
+import fitz  # PyMuPDF
 
 from src.crop_utils import crop_pdf_page, save_cropped_image
 from src.extract_tables import setup_clients, process_image_ocr, convert_markdown_to_json_with_multiple_models, save_json
@@ -141,9 +142,13 @@ def process_document():
             pdf_path = temp_pdf.name
             logger.info("PDF file saved temporarily")
 
-        # Step 1: Extract image from page 5
-        logger.info("Step 1: Extracting image from page 5")
-        page_number = 5  # 0-based indexing
+        # Step 1: Extract image from the last page
+        logger.info("Step 1: Extracting image from the last page")
+        
+        # Get the last page number from the PDF
+        doc = fitz.open(pdf_path)
+        page_number = len(doc) - 1  # Get the last page (0-based indexing)
+        doc.close()            
         crop_rect = (0, 127, 700, 470)
         image_output_path = IMAGE_DIR / f"{base_filename}.png"
 
@@ -177,7 +182,7 @@ def process_document():
         
         # Check if the document is empty (file size near zero)
         all_paragraphs = doc.paragraphs
-        if len(all_paragraphs) < 5:  # Checking if doc is too small (likely empty)
+        if len(all_paragraphs) < 1:  # Checking if doc is too small (likely empty)
             # Clean up files before returning error
             cleanup_files(pdf_path, image_output_path, json_output_path, doc_output_path)
             logger.error("Generated document is empty")
