@@ -88,7 +88,11 @@ def create_doc_from_json(json_data: Dict[str, Any]) -> Document:
                     if display_name == "Stability Class":
                         # Flag whenever the stability class text contains the word "Reduced" (case-insensitive)
                         if isinstance(value, str) and "reduced" in value.lower():
-                            doc.add_paragraph(f"{display_name}: {value} → FLAG", style='List Bullet')
+                            # Create a paragraph where only the arrow and FLAG are bold
+                            paragraph = doc.add_paragraph(style='List Bullet')
+                            paragraph.add_run(f"{display_name}: {value}")
+                            flag_run = paragraph.add_run(" → FLAG")
+                            flag_run.bold = True
                         else:
                             doc.add_paragraph(f"{display_name}: {value}", style='List Bullet')
                     else:
