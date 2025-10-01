@@ -31,7 +31,12 @@ def create_doc_from_json(json_data: Dict[str, Any]) -> Document:
     style = doc.styles['Normal']
     font = style.font
     font.name = 'Calibri'
-    font.size = Pt(11)
+    font.size = Pt(12)
+
+    # Add main heading
+   # heading = doc.add_heading("Postural Stability Score -", level=1)
+   # heading.style.font.name = 'Calibri'
+   # heading.style.font.size = Pt(14)
 
     # Get test keys from Test Type or Test Name
     test_keys = list(json_data.get("Test Type", {}).keys())
@@ -53,7 +58,12 @@ def create_doc_from_json(json_data: Dict[str, Any]) -> Document:
         title = f"{test_key}: {test_name}"
         if test_type:
             title += f" ({test_type})"
-        doc.add_paragraph(title, style='Heading2')
+        
+        # Add title with custom formatting
+        title_paragraph = doc.add_paragraph(title, style='Heading2')
+        title_paragraph.style.font.name = 'Calibri'
+        title_paragraph.style.font.size = Pt(14)
+        
 
         # Define fields in the exact order required
         fields = [

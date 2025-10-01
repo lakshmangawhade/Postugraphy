@@ -3,16 +3,13 @@ import tempfile
 from flask_cors import CORS
 from pathlib import Path
 import logging
-import boto3
 import os
-import uuid
 import json
 import fitz  # PyMuPDF
 
 from src.crop_utils import crop_pdf_page, save_cropped_image
 from src.extract_tables import setup_clients, process_image_ocr, convert_markdown_to_json_with_multiple_models, save_json
 from src.doc_utils import create_doc_from_json, save_doc
-from src.uploadToS3 import upload_to_s3
 
 app = Flask(__name__)
 CORS(app, origins="*", send_wildcard=True, supports_credentials=False)
@@ -29,11 +26,6 @@ IMAGE_DIR = BASE_DIR / "image"
 # Create necessary directories
 OUTPUT_DIR.mkdir(exist_ok=True)
 IMAGE_DIR.mkdir(exist_ok=True)
-
-s3 = boto3.client('s3',
-                 aws_access_key_id=os.getenv("VITE_AWS_ACCESS_KEY"),
-                 aws_secret_access_key=os.getenv("VITE_AWS_SECRET_KEY"),
-                 region_name=os.getenv("VITE_AWS_REGION"))
 
 # HTML template
 UPLOAD_TEMPLATE = """
@@ -96,9 +88,40 @@ UPLOAD_TEMPLATE = """
         </div>
     </div>
     <script>
-        document.getElementById('uploadForm').onsubmit = function() {
+        document.getElementById('uploadForm').onsubmit = function(e) {
+            e.preventDefault();
             document.getElementById('progress').classList.add('active');
             document.getElementById('steps').innerHTML = '<p>Starting processing...</p>';
+            
+            const formData = new FormData(this);
+            
+            fetch('/process-document', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('steps').innerHTML = '<p>✅ Processing completed successfully!</p>';
+                    // Automatically trigger download
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = data.download_url;
+                    downloadLink.download = data.filename;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    
+                    // Show success message
+                    setTimeout(() => {
+                        document.getElementById('steps').innerHTML += '<p>📥 Download started automatically</p>';
+                    }, 1000);
+                } else {
+                    document.getElementById('steps').innerHTML = '<p>❌ Error: ' + data.message + '</p>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('steps').innerHTML = '<p>❌ Error: ' + error.message + '</p>';
+            });
         };
     </script>
 </body>
@@ -108,6 +131,21 @@ UPLOAD_TEMPLATE = """
 @app.route('/')
 def index():
     return render_template_string(UPLOAD_TEMPLATE)
+
+@app.route('/download/<filename>')
+def download_file(filename):
+    """Download a generated document"""
+    try:
+        file_path = OUTPUT_DIR / filename
+        if not file_path.exists():
+            logger.error(f"File not found: {filename}")
+            return jsonify({'status': 'error', 'message': 'File not found'}), 404
+        
+        logger.info(f"Serving download for: {filename}")
+        return send_file(str(file_path), as_attachment=True, download_name=filename)
+    except Exception as e:
+        logger.error(f"Error serving download: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Download failed'}), 500
 
 @app.route('/process-document', methods=['POST'])
 def process_document():
@@ -163,6 +201,7 @@ def process_document():
 
         markdown_table = process_image_ocr(str(image_output_path), mistral_client)
         logger.info("OCR processing completed")
+        logger.info(f"Generated markdown table:\n{markdown_table}")
 
         json_data = convert_markdown_to_json_with_multiple_models(markdown_table, groq_client)
         logger.info("JSON conversion completed")
@@ -191,33 +230,19 @@ def process_document():
                 'message': 'Generated document is empty'
             }), 400
 
-        # Clean up temporary files but keep the doc until after S3 upload
+        # Clean up temporary files but keep the doc for download
         cleanup_files(pdf_path, image_output_path, json_output_path)
         logger.info("Temporary files deleted")
 
-        # Step 4: Upload to S3
-        logger.info("Step 4: Uploading document to S3")
-        try:
-            s3_url, unique_output_filename = upload_to_s3(str(doc_output_path))
-            
-            # Clean up the doc file after successful upload
-            cleanup_files(doc_output_path=doc_output_path)
-            
-            return jsonify({
-                'status': 'success',
-                'file_url': s3_url,
-                'filename': unique_output_filename,
-                # 'json_url': json_s3_url,
-                # 'json_filename': unique_json_filename
-            })
-        except Exception as s3_error:
-            # Clean up the doc file if S3 upload fails
-            #cleanup_files(doc_output_path=doc_output_path)
-            logger.error(f"S3 upload error: {str(s3_error)}")
-            return jsonify({
-                'status': 'error',
-                'message': f'Failed to upload file to S3'
-            }), 500
+        # Step 4: Return document for download
+        logger.info("Step 4: Preparing document for download")
+        
+        return jsonify({
+            'status': 'success',
+            'download_url': f'/download/{base_filename}.docx',
+            'filename': f'{base_filename}.docx',
+            'message': 'Document generated successfully. Click to download.'
+        })
 
     except Exception as e:
         # Clean up all files in case of any error

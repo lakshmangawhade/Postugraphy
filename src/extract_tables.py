@@ -89,6 +89,13 @@ def parse_markdown_table_manually(markdown_table: str) -> Dict[str, Any]:
     headers = [cell.strip() for cell in header_line.split('|') if cell.strip()]
     
     print(f"Parsed headers: {headers}")
+    print(f"Number of columns: {len(headers)}")
+    
+    # Debug: Print all table lines to understand structure
+    print("\nAll table lines:")
+    for i, line in enumerate(table_lines):
+        print(f"Line {i}: {line}")
+    print()
     
     # Initialize result
     result = {
@@ -96,14 +103,43 @@ def parse_markdown_table_manually(markdown_table: str) -> Dict[str, Any]:
         "Test Name": {}
     }
     
-    # Extract test names from headers
-    for i, header in enumerate(headers[1:], 1):  # Skip first header "Test Name"
-        if i <= 4:  # Only process first 4 test columns
-            test_key = f"Test {i}"
-            # Extract test name by removing "Test X " prefix
-            test_name = header.replace(f"Test {i} ", "").strip()
+    # Determine if first column is a header label or contains test data
+    # Look at the actual table structure to determine this
+    first_column_is_header = True  # Default to True since most tables have parameter names in first column
+    
+    # Check if the first column contains actual test data by looking at the data rows
+    if len(table_lines) > 1:
+        first_data_row = table_lines[1]
+        first_data_cells = [cell.strip() for cell in first_data_row.split('|') if cell.strip()]
+        if len(first_data_cells) > 0:
+            first_data_cell = first_data_cells[0].lower()
+            # If first data cell looks like a parameter name, then first column is parameters
+            if any(keyword in first_data_cell for keyword in ["test", "sway", "stability", "fatigue", "adaptation", "direction", "parameter", "date", "status", "center", "max", "ml", "ap", "actual", "velocity", "acceler", "path", "area", "score", "class", "pred", "height", "weight", "body", "mass", "index", "samples"]):
+                first_column_is_header = True
+                print("First column appears to contain parameter names based on data analysis")
+            else:
+                first_column_is_header = False
+                print("First column appears to contain test data")
+    
+    print(f"First column is header: {first_column_is_header}")
+    
+    # Extract test names from headers - handle the case where first column is empty
+    if first_column_is_header:
+        # First column is parameter names, so test data starts from second column
+        test_columns = headers[1:] if len(headers) > 1 else headers
+        print(f"Extracting test names from columns 2-{len(headers)}")
+    else:
+        # First column contains test data
+        test_columns = headers
+        print(f"Extracting test names from columns 1-{len(headers)}")
+    
+    for i, header in enumerate(test_columns):
+        if i < 4:  # Only process first 4 test columns
+            test_key = f"Test {i+1}"
+            # Extract test name by removing "Test X " prefix if present
+            test_name = header.replace(f"Test {i+1} ", "").strip()
             result["Test Name"][test_key] = test_name
-            print(f"Extracted test name for {test_key}: {test_name}")
+            print(f"DEBUG: Header '{header}' -> Test name '{test_name}' for {test_key}")
     
     # Process the rest of the table for other parameters
     for line in table_lines[1:]:
@@ -116,17 +152,26 @@ def parse_markdown_table_manually(markdown_table: str) -> Dict[str, Any]:
         
         if param_name == "Test Type":
             print("Found Test Type row")
-            for j, value in enumerate(cells[1:], 1):
-                if j <= 4:  # Only take first 4 test values
-                    test_key = f"Test {j}"
-                    result["Test Type"][test_key] = value.strip()
-                    print(f"Added Test Type for {test_key}: {value.strip()}")
+            # Start from index 1 if first column is header, otherwise from index 0
+            start_idx = 1 if first_column_is_header else 0
+            for j, value in enumerate(cells[start_idx:], start_idx):
+                if j < 5:  # Only take first 4 test values
+                    test_key = f"Test {j-start_idx+1}"
+                    # Only add if value is not empty
+                    if value.strip():
+                        result["Test Type"][test_key] = value.strip()
+                        print(f"Added Test Type for {test_key}: {value.strip()}")
         else:
             # Create test data structure for other parameters
             test_data = {}
-            for j, value in enumerate(cells[1:], 1):
-                if j <= 4:  # Only take first 4 test values
-                    test_data[f"Test {j}"] = value.strip()
+            # Start from index 1 if first column is header, otherwise from index 0
+            start_idx = 1 if first_column_is_header else 0
+            for j, value in enumerate(cells[start_idx:], start_idx):
+                if j < 5:  # Only take first 4 test values
+                    test_key = f"Test {j-start_idx+1}"
+                    # Only add if value is not empty
+                    if value.strip():
+                        test_data[test_key] = value.strip()
             
             # Ensure all 4 tests are present
             for test_num in range(1, 5):
