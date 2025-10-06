@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file, render_template_string, jsonify
+clude from flask import Flask, request, send_file, render_template_string, jsonify
 import tempfile
 from flask_cors import CORS
 from pathlib import Path
@@ -10,6 +10,7 @@ import fitz  # PyMuPDF
 from src.crop_utils import crop_pdf_page, save_cropped_image
 from src.extract_tables import setup_clients, process_image_ocr, convert_markdown_to_json_with_multiple_models, save_json
 from src.doc_utils import create_doc_from_json, save_doc
+from src.uploadToS3 import upload_to_s3
 
 app = Flask(__name__)
 CORS(app, origins="*", send_wildcard=True, supports_credentials=False)
@@ -218,6 +219,11 @@ def process_document():
         doc_output_path = OUTPUT_DIR / f"{base_filename}.docx"
         save_doc(doc, str(doc_output_path))
         logger.info(f"Document saved to {doc_output_path}")
+
+        # Upload the generated document to S3
+        logger.info("Uploading generated document to S3")
+        doc_s3_url, unique_doc_filename = upload_to_s3(str(doc_output_path))
+        logger.info(f"Document uploaded to S3: {doc_s3_url}")
         
         # Check if the document is empty (file size near zero)
         all_paragraphs = doc.paragraphs
@@ -234,14 +240,14 @@ def process_document():
         cleanup_files(pdf_path, image_output_path, json_output_path)
         logger.info("Temporary files deleted")
 
-        # Step 4: Return document for download
-        logger.info("Step 4: Preparing document for download")
-        
+        # Step 4: Return S3 URL for download
+        logger.info("Step 4: Returning S3 URL for download")
+
         return jsonify({
             'status': 'success',
-            'download_url': f'/download/{base_filename}.docx',
-            'filename': f'{base_filename}.docx',
-            'message': 'Document generated successfully. Click to download.'
+            'download_url': doc_s3_url,
+            'filename': unique_doc_filename,
+            'message': 'Document generated successfully and uploaded to S3. Click to download.'
         })
 
     except Exception as e:
