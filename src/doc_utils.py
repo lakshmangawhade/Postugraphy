@@ -1,7 +1,10 @@
 import json
 from docx import Document
-from docx.shared import Pt
+from docx.shared import Inches, Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.shared import OxmlElement, qn
 import os
+
 from typing import Dict, Any
 
 def load_json(file_path: str) -> Dict[str, Any]:
@@ -34,9 +37,20 @@ def create_doc_from_json(json_data: Dict[str, Any]) -> Document:
     font.size = Pt(12)
 
     # Add main heading
-   # heading = doc.add_heading("Postural Stability Score -", level=1)
-   # heading.style.font.name = 'Calibri'
-   # heading.style.font.size = Pt(14)
+    title = doc.add_paragraph('VESTIBULAR //')
+    title.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    for run in title.runs:
+        run.font.size = Pt(12)
+        run.font.color.rgb = RGBColor(0, 0, 0)
+        run.bold = True
+            
+    subtitle = doc.add_paragraph()
+    subtitle.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    subtitle_run = subtitle.add_run('Posturography -')
+    subtitle_run.font.name = 'Calibri'
+    subtitle_run.font.size = Pt(12)
+    subtitle_run.font.color.rgb = RGBColor(0, 0, 0)
+    subtitle_run.bold = True
 
     # Get test keys from Test Type or Test Name
     test_keys = list(json_data.get("Test Type", {}).keys())
@@ -48,25 +62,32 @@ def create_doc_from_json(json_data: Dict[str, Any]) -> Document:
         print("Warning: No test data found in JSON")
         return doc
 
+    # List to collect flagged findings
+    flagged_findings = []
+    
     # Process each test
     for test_key in test_keys:
         # Get test name and type
         test_name = json_data.get("Test Name", {}).get(test_key, test_key)
         test_type = json_data.get("Test Type", {}).get(test_key, "")
         
-        # Create title in the format "Test X: Test Name (Test Type)"
-        title = f"{test_key}: {test_name}"
+        # Create title in the format "Test X: Test Name: (Test Type)"
+        title = f"{test_key}: {test_name}:"
         if test_type:
             title += f" ({test_type})"
         
         # Add title with custom formatting
-        title_paragraph = doc.add_paragraph(title, style='Heading2')
-        title_paragraph.style.font.name = 'Calibri'
-        title_paragraph.style.font.size = Pt(14)
+        title_paragraph = doc.add_paragraph(title)
+        for run in title_paragraph.runs:
+            run.font.name = 'Calibri'
+            run.font.size = Pt(12)
+            run.font.color.rgb = RGBColor(0, 0, 0)
         
 
         # Define fields in the exact order required
         fields = [
+            ("Test Date", "Test Date"),
+            ("Test Parameters", "Test Parameters"),
             ("Stability Score", "Stability Score"),
             ("Stability Class", "Stability Class"),
             ("Pred. Direction of Sway", "Pred. Direction of Sway"),
@@ -76,6 +97,7 @@ def create_doc_from_json(json_data: Dict[str, Any]) -> Document:
             ("Sway Center [Xo, Yo]", "Sway Center [Xo, Yo]"),
             ("ML Sway (Max & 95%)", "ML Sway: Max & 95% Conf."),
             ("AP Sway (Max & 95%)", "AP Sway: Max & 95% Conf."),
+            ("95% Conf. Sway: Max & Min", "95% Conf. Sway: Max & Min"),
             ("Actual Sway (Max & Ave)", "Actual Sway: Max & Ave"),
             ("Sway Velocity (Max & Ave)", "Sway Velocity: Max & Ave"),
             ("Sway Acceleration (Max & Ave)", "Sway Acceler.: Max & Ave"),
@@ -101,14 +123,37 @@ def create_doc_from_json(json_data: Dict[str, Any]) -> Document:
                             # Create a paragraph where only the arrow and FLAG are bold
                             paragraph = doc.add_paragraph(style='List Bullet')
                             paragraph.add_run(f"{display_name}: {value}")
-                            flag_run = paragraph.add_run(" → FLAG")
+                            flag_run = paragraph.add_run(" | FLAG")
                             flag_run.bold = True
+                            # Add to flagged findings
+                            flagged_findings.append(f"{test_name}: {display_name}: {value} | FLAG")
                         else:
                             doc.add_paragraph(f"{display_name}: {value}", style='List Bullet')
                     else:
                         doc.add_paragraph(f"{display_name}: {value}", style='List Bullet')
 
         doc.add_paragraph("")  # Space between tests
+
+    # Add Summary of Flagged Findings section if there are any flagged findings
+    if flagged_findings:
+        doc.add_paragraph("")  # Extra space before summary
+        summary_title = doc.add_paragraph("Summary of Flagged Findings")
+        for run in summary_title.runs:
+            run.font.name = 'Calibri'
+            run.font.size = Pt(12)
+            run.font.color.rgb = RGBColor(0, 0, 0)
+            run.bold = True
+        
+        for finding in flagged_findings:
+            # Split the finding to separate the flag part
+            if " | FLAG" in finding:
+                main_text, flag_text = finding.rsplit(" | FLAG", 1)
+                paragraph = doc.add_paragraph(style='List Bullet')
+                paragraph.add_run(main_text)
+                flag_run = paragraph.add_run(" | FLAG")
+                flag_run.bold = True
+            else:
+                doc.add_paragraph(finding, style='List Bullet')
 
     return doc
 
